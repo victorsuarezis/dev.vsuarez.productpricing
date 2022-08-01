@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Product Pricing
+Bundle-SymbolicName: dev.vsuarez.productpricing
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Ing. Victor Suarez <victor.suarez.is@gmail.com>
+Automatic-Module-Name: dev.vsuarez.productpricing
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: org.adempiere.base;bundle-version="8.2.0",
+ org.adempiere.plugin.utils;bundle-version="8.2.0"
+Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
