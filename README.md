@@ -61,3 +61,6 @@ Discount Scheme Header
 
 - In this previous example, we can see that when calculating the discount, if the Document coincides with the First case, in the second image, it will have a 10% discount, otherwise, then the discount will be 5%, which is applied for all other documents, which do not coincide with this Warehouse and Price List.
 
+## Install
+- Download jar from **build** folder and install via *Felix Console*
+
