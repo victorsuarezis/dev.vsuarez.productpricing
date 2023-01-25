@@ -23,6 +23,9 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 	 * 
 	 */
 	private static final long serialVersionUID = -454061213377618696L;
+	
+	/** Cascade = C */
+	public static final String DISCOUNTTYPE_Cascade = "C";
 
 	/**
 	 * @param ctx
@@ -126,9 +129,8 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 			return getFlatDiscount();
 		}
 		//	Not supported
-		else if (DISCOUNTTYPE_Formula.equals(getDiscountType())
-			|| DISCOUNTTYPE_Pricelist.equals(getDiscountType()))
-		{
+		else if (DISCOUNTTYPE_Pricelist.equals(getDiscountType())
+					|| DISCOUNTTYPE_Formula.equals(getDiscountType())) {
 			if (log.isLoggable(Level.INFO)) log.info ("Not supported (yet) DiscountType=" + getDiscountType());
 			return Env.ZERO;
 		}
@@ -143,7 +145,7 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 			if (log.isLoggable(Level.FINER)) log.finer("Amt=" + Amt + ",M_Product_ID=" + M_Product_ID + ",M_Product_Category_ID=" + M_Product_Category_ID
 					+ ", M_Warehouse_ID=" + M_Warehouse_ID + ", M_PriceList_ID=" + M_PriceList_ID);
 		}
-		
+		BigDecimal discountFormula = Env.ONEHUNDRED;
 		for (MDiscountSchemaBreak dbr : brs) {
 			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(dbr);
 			if (!br.isActive())
@@ -170,8 +172,16 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 			else
 				discount = br.getBreakDiscount();
 			if (log.isLoggable(Level.FINE)) log.fine("Discount=>" + discount);
-			return discount;
+			
+			if(DISCOUNTTYPE_Cascade.equals(getDiscountType())) {
+				discountFormula = discountFormula.divide(Env.ONEHUNDRED)
+						.multiply(Env.ONEHUNDRED.subtract(discount));
+			} else
+				return discount;
 		}	//	for all breaks
+		
+		if(DISCOUNTTYPE_Cascade.equals(getDiscountType()) && discountFormula.signum() > 0)
+			return Env.ONEHUNDRED.subtract(discountFormula);
 		
 		return Env.ZERO;
 	}	//	calculateDiscount
