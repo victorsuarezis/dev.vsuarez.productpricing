@@ -4,7 +4,6 @@
 package dev.vsuarez.model;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -94,15 +93,19 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		BigDecimal discount = calculateDiscount(Qty, Price, M_Product_ID, M_Product_Category_ID, 
 				BPartnerFlatDiscount, M_Warehouse_ID, M_PriceList_ID);
 		//	nothing to calculate
-		if (discount == null || discount.signum() == 0)
-			return Price;
+		if (discount == null || discount.signum() == 0) {
+			BigDecimal fixedPrice = calculateFixedPrice(Qty, Price, M_Product_ID, M_Product_Category_ID,
+					BPartnerFlatDiscount, M_Warehouse_ID, M_PriceList_ID);
+			if (fixedPrice != null)
+				return fixedPrice;
+			else
+				return Price;
+		}
 		//
-		BigDecimal onehundred = Env.ONEHUNDRED;
-		BigDecimal multiplier = (onehundred).subtract(discount);
-		multiplier = multiplier.divide(onehundred, 6, RoundingMode.HALF_UP);
-		BigDecimal newPrice = Price.multiply(multiplier);
+		BigDecimal newPrice = calculateDiscountedPrice(Price, discount);
 		if (log.isLoggable(Level.FINE)) log.fine("=>" + newPrice);
 		return newPrice;
+
 	}	//	calculatePrice
 	
 	/**
@@ -184,6 +187,51 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 			return Env.ONEHUNDRED.subtract(discountFormula);
 		
 		return Env.ZERO;
+	}	//	calculateDiscount
+	
+	/**
+	 * 	Get fix discounted price
+	 *	@param Qty quantity
+	 *	@param Price price
+	 *	@param M_Product_ID product
+	 *	@param M_Product_Category_ID category
+	 *	@return fix discounted price or zero
+	 */
+	private BigDecimal calculateFixedPrice (BigDecimal Qty, BigDecimal Price, int M_Product_ID, int M_Product_Category_ID,
+			BigDecimal BPartnerFlatDiscount, int M_Warehouse_ID, int M_PriceList_ID) {
+		if (DISCOUNTTYPE_FlatPercent.equals(getDiscountType()) || DISCOUNTTYPE_Formula.equals(getDiscountType())
+			|| DISCOUNTTYPE_Pricelist.equals(getDiscountType())) {
+			return null;
+		}
+		
+		//	Price Breaks
+		MDiscountSchemaBreak[] breaks = getBreaks(false);
+		BigDecimal Amt = Price.multiply(Qty);
+		for (MDiscountSchemaBreak brs : breaks) {
+			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(brs);
+			if (!br.isActive())
+				continue;
+			
+			if (isQuantityBased()) {
+				if (!br.applies(Qty, M_Product_ID, M_Product_Category_ID, M_Warehouse_ID, M_PriceList_ID))
+					continue;
+			} else {
+				if (!br.applies(Amt, M_Product_ID, M_Product_Category_ID, M_Warehouse_ID, M_PriceList_ID))
+					continue;
+			}
+			
+			//	Line applies
+			if (!br.isBPartnerFlatDiscount())
+			{
+				if (br.getFixedPrice() != null && br.getFixedPrice().signum() > 0)
+				{
+					return br.getFixedPrice();
+				}
+			}
+			return null;
+		}	//	for all breaks
+		
+		return null;
 	}	//	calculateDiscount
 
 }
