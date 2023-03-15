@@ -17,7 +17,6 @@ import org.compiere.model.I_C_OrderLine;
 import org.compiere.model.I_C_ProjectLine;
 import org.compiere.model.I_M_RMALine;
 import org.compiere.model.I_M_RequisitionLine;
-import org.compiere.model.MDiscountSchema;
 import org.compiere.model.MPriceList;
 import org.compiere.model.MProduct;
 import org.compiere.util.CLogger;
@@ -180,8 +179,7 @@ public class IVS_MProductPricing extends AbstractProductPricing {
 		if (M_DiscountSchema_ID == 0)
 			return;
 		
-		MDiscountSchema sd = MDiscountSchema.get(M_DiscountSchema_ID);	//	not correct
-		IVS_MDiscountSchema ivSD = new IVS_MDiscountSchema(sd);
+		IVS_MDiscountSchema ivSD = new IVS_MDiscountSchema(Env.getCtx(), M_DiscountSchema_ID, trxName);
 		if (ivSD.get_ID() == 0 || (IVS_MDiscountSchema.DISCOUNTTYPE_Breaks.equals(ivSD.getDiscountType()) && !IVS_MDiscountSchema.CUMULATIVELEVEL_Line.equals(ivSD.getCumulativeLevel())))
 			return;
 		//

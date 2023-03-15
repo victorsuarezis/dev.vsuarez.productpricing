@@ -4,6 +4,7 @@
 package dev.vsuarez.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -49,29 +50,29 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 	/**
 	 * @param copy
 	 */
-	public IVS_MDiscountSchema(MDiscountSchema copy) {
-		super(copy);
-		// TODO Auto-generated constructor stub
-	}
+//	public IVS_MDiscountSchema(MDiscountSchema copy) {
+//		this(Env.getCtx(), copy);
+//	}
 
-	/**
-	 * @param ctx
-	 * @param copy
-	 */
-	public IVS_MDiscountSchema(Properties ctx, MDiscountSchema copy) {
-		super(ctx, copy);
-		// TODO Auto-generated constructor stub
-	}
+//	/**
+//	 * @param ctx
+//	 * @param copy
+//	 */
+//	public IVS_MDiscountSchema(Properties ctx, MDiscountSchema copy) {
+//		this(ctx, copy, (String) null);
+//	}
 
-	/**
-	 * @param ctx
-	 * @param copy
-	 * @param trxName
-	 */
-	public IVS_MDiscountSchema(Properties ctx, MDiscountSchema copy, String trxName) {
-		super(ctx, copy, trxName);
-		// TODO Auto-generated constructor stub
-	}
+//	/**
+//	 * @param ctx
+//	 * @param copy
+//	 * @param trxName
+//	 */
+//	public IVS_MDiscountSchema(Properties ctx, MDiscountSchema copy, String trxName) {
+//		this(ctx, 0, trxName);
+//		copyPO(copy);
+//		super.m_breaks = copy.m_breaks != null ? Arrays.stream(copy.m_breaks).map(e -> {return new MDiscountSchemaBreak(ctx, e, trxName);}).toArray(MDiscountSchemaBreak[]::new) : null;
+//		this.m_lines = copy.m_lines != null ? Arrays.stream(copy.m_lines).map(e -> {return new MDiscountSchemaLine(ctx, e, trxName);}).toArray(MDiscountSchemaLine[]::new) : null;
+//	}
 	
 	/**
 	 * 	Calculate Discounted Price
@@ -107,6 +108,20 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		return newPrice;
 
 	}	//	calculatePrice
+	
+	/**
+	 * 
+	 * @param price input price
+	 * @param discount discount percentage, for e.g 5.00 for 5%
+	 * @return discounted price
+	 */
+	public static BigDecimal calculateDiscountedPrice(BigDecimal price, BigDecimal discount) {
+		BigDecimal onehundred = Env.ONEHUNDRED;
+		BigDecimal multiplier = (onehundred).subtract(discount);
+		multiplier = multiplier.divide(onehundred, 6, RoundingMode.HALF_UP);
+		BigDecimal newPrice = price.multiply(multiplier);
+		return newPrice;
+	}
 	
 	/**
 	 * 	Calculate Discount Percentage
@@ -150,7 +165,7 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		}
 		BigDecimal discountFormula = Env.ONEHUNDRED;
 		for (MDiscountSchemaBreak dbr : brs) {
-			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(dbr);
+			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(dbr.getCtx(), dbr.getM_DiscountSchemaBreak_ID(), dbr.get_TrxName());
 			if (!br.isActive())
 				continue;
 			
@@ -207,8 +222,8 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		//	Price Breaks
 		MDiscountSchemaBreak[] breaks = getBreaks(false);
 		BigDecimal Amt = Price.multiply(Qty);
-		for (MDiscountSchemaBreak brs : breaks) {
-			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(brs);
+		for (MDiscountSchemaBreak dbr : breaks) {
+			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(dbr.getCtx(), dbr.getM_DiscountSchemaBreak_ID(), dbr.get_TrxName());
 			if (!br.isActive())
 				continue;
 			
@@ -223,9 +238,10 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 			//	Line applies
 			if (!br.isBPartnerFlatDiscount())
 			{
-				if (br.getFixedPrice() != null && br.getFixedPrice().signum() > 0)
-				{
-					return br.getFixedPrice();
+				if (br.get_Value("FixedPrice") != null) {
+					BigDecimal fixedPrice = (BigDecimal) br.get_Value("FixedPrice");
+					if(fixedPrice.signum() > 0)
+						return fixedPrice;
 				}
 			}
 			return null;

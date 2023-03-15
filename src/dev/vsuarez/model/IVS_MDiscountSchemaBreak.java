@@ -44,32 +44,32 @@ public class IVS_MDiscountSchemaBreak extends MDiscountSchemaBreak {
 		// TODO Auto-generated constructor stub
 	}
 
-	/**
-	 * @param copy
-	 */
-	public IVS_MDiscountSchemaBreak(MDiscountSchemaBreak copy) {
-		super(copy);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param ctx
-	 * @param copy
-	 */
-	public IVS_MDiscountSchemaBreak(Properties ctx, MDiscountSchemaBreak copy) {
-		super(ctx, copy);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param ctx
-	 * @param copy
-	 * @param trxName
-	 */
-	public IVS_MDiscountSchemaBreak(Properties ctx, MDiscountSchemaBreak copy, String trxName) {
-		super(ctx, copy, trxName);
-		// TODO Auto-generated constructor stub
-	}
+//	/**
+//	 * @param copy
+//	 */
+//	public IVS_MDiscountSchemaBreak(MDiscountSchemaBreak copy) {
+//		super(copy);
+//		// TODO Auto-generated constructor stub
+//	}
+//
+//	/**
+//	 * @param ctx
+//	 * @param copy
+//	 */
+//	public IVS_MDiscountSchemaBreak(Properties ctx, MDiscountSchemaBreak copy) {
+//		super(ctx, copy);
+//		// TODO Auto-generated constructor stub
+//	}
+//
+//	/**
+//	 * @param ctx
+//	 * @param copy
+//	 * @param trxName
+//	 */
+//	public IVS_MDiscountSchemaBreak(Properties ctx, MDiscountSchemaBreak copy, String trxName) {
+//		super(ctx, copy, trxName);
+//		// TODO Auto-generated constructor stub
+//	}
 	
 	/**
 	 * 	Criteria apply
