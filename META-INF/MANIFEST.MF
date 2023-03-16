@@ -9,6 +9,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.adempiere.base,
  org.adempiere.plugin.utils
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
-Service-Component: OSGI-INF/ProductPricingFactory.xml,
- OSGI-INF/ModelFactory.xml
+Service-Component: OSGI-INF/ProductPricingFactory.xml,OSGI-INF/ModelFactory.xml,
+ OSGI-INF/CalloutFactory.xml
 Bundle-ActivationPolicy: lazy
