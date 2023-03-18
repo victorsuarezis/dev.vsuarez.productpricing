@@ -93,22 +93,25 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		//
 		BigDecimal discount = calculateDiscount(Qty, Price, M_Product_ID, M_Product_Category_ID, 
 				BPartnerFlatDiscount, M_Warehouse_ID, M_PriceList_ID);
-		//	nothing to calculate
+		
 		if (discount == null || discount.signum() == 0) {
 			BigDecimal fixedPrice = calculateFixedPrice(Qty, Price, M_Product_ID, M_Product_Category_ID,
 					BPartnerFlatDiscount, M_Warehouse_ID, M_PriceList_ID);
 			if (fixedPrice != null)
 				return fixedPrice;
-			else
-				return Price;
+			BigDecimal addAmtQtyOverBreak = calcAmtQtyOverBreak(Qty, Price, M_Product_ID, M_Product_Category_ID,
+					BPartnerFlatDiscount, M_Warehouse_ID, M_PriceList_ID);
+			if(addAmtQtyOverBreak != null)
+				return addAmtQtyOverBreak;
+			
+			return Price;
 		}
 		//
 		BigDecimal newPrice = calculateDiscountedPrice(Price, discount);
 		if (log.isLoggable(Level.FINE)) log.fine("=>" + newPrice);
 		return newPrice;
-
 	}	//	calculatePrice
-	
+
 	/**
 	 * 
 	 * @param price input price
@@ -215,7 +218,7 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 	private BigDecimal calculateFixedPrice (BigDecimal Qty, BigDecimal Price, int M_Product_ID, int M_Product_Category_ID,
 			BigDecimal BPartnerFlatDiscount, int M_Warehouse_ID, int M_PriceList_ID) {
 		if (DISCOUNTTYPE_FlatPercent.equals(getDiscountType()) || DISCOUNTTYPE_Formula.equals(getDiscountType())
-			|| DISCOUNTTYPE_Pricelist.equals(getDiscountType())) {
+			|| DISCOUNTTYPE_Pricelist.equals(getDiscountType()) || DISCOUNTTYPE_Cascade.equals(getDiscountType())) {
 			return null;
 		}
 		
@@ -249,5 +252,76 @@ public class IVS_MDiscountSchema extends MDiscountSchema {
 		
 		return null;
 	}	//	calculateDiscount
+	
+	/**
+	 * Calculate Amount by quantity Over Break
+	 * @param Qty
+	 * @param Price
+	 * @param M_Product_ID
+	 * @param M_Product_Category_ID
+	 * @param bPartnerFlatDiscount
+	 * @param M_Warehouse_ID
+	 * @param M_PriceList_ID
+	 * @return
+	 */
+	private BigDecimal calcAmtQtyOverBreak(BigDecimal Qty, BigDecimal Price, int M_Product_ID, int M_Product_Category_ID,
+			BigDecimal bPartnerFlatDiscount, int M_Warehouse_ID, int M_PriceList_ID) {
+		if (DISCOUNTTYPE_FlatPercent.equals(getDiscountType()) || DISCOUNTTYPE_Formula.equals(getDiscountType())
+				|| DISCOUNTTYPE_Pricelist.equals(getDiscountType())) {
+				return null;
+			}
+		
+		//	Price Breaks
+		MDiscountSchemaBreak[] breaks = getBreaks(false);
+		BigDecimal Amt = Price.multiply(Qty);
+		BigDecimal priceCalculate = BigDecimal.ZERO;
+		BigDecimal qtyForCalculate = BigDecimal.ZERO;
+		for (MDiscountSchemaBreak dbr : breaks) {
+			IVS_MDiscountSchemaBreak br = new IVS_MDiscountSchemaBreak(dbr.getCtx(), dbr.getM_DiscountSchemaBreak_ID(), dbr.get_TrxName());
+			if (!br.isActive())
+				continue;
+			
+			if (isQuantityBased()) {
+				if (!br.applies(Qty, M_Product_ID, M_Product_Category_ID, M_Warehouse_ID, M_PriceList_ID))
+					continue;
+			} else {
+				if (!br.applies(Amt, M_Product_ID, M_Product_Category_ID, M_Warehouse_ID, M_PriceList_ID))
+					continue;
+			}
+			
+			//	Line applies
+			if (!br.isBPartnerFlatDiscount()) {
+				if (br.get_Value("AddSubAmtUnit") != null) {
+					BigDecimal addSubAmtUnit = (BigDecimal) br.get_Value("AddSubAmtUnit");
+					if(addSubAmtUnit.signum() > 0) {
+						if(br.getBreakValue() == null)
+							return null;
+						BigDecimal breakValue = br.getBreakValue().subtract(BigDecimal.ONE);							
+						if (isQuantityBased()) {
+							if(qtyForCalculate.signum() == 0)
+								qtyForCalculate = Qty;
+							BigDecimal qtyOverBreak = qtyForCalculate.subtract(breakValue);
+							qtyForCalculate = breakValue;
+							if(qtyOverBreak.signum() > 0) {
+								if(DISCOUNTTYPE_Cascade.equals(getDiscountType()))
+									priceCalculate = priceCalculate.add(qtyOverBreak.multiply(addSubAmtUnit));
+								else 
+									return Price.add(qtyOverBreak.multiply(addSubAmtUnit));
+							}
+						} else {
+							BigDecimal amtOverBreak = Amt.subtract(breakValue);
+							if(amtOverBreak.signum() > 0) {
+								if(DISCOUNTTYPE_Cascade.equals(getDiscountType()))
+									priceCalculate = priceCalculate.add(amtOverBreak.multiply(addSubAmtUnit));
+								else
+									return Price.add(amtOverBreak.multiply(addSubAmtUnit));
+							}
+						}
+					}
+				}
+			}
+		}	//	for all breaks
+		return Price.add(priceCalculate);
+	}
 
 }

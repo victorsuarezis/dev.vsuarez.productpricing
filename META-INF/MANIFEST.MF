@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Product Pricing
 Bundle-SymbolicName: dev.vsuarez.productpricing
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Bundle-Vendor: Ing. Victor Suarez <victor.suarez.is@gmail.com>
 Automatic-Module-Name: dev.vsuarez.productpricing
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.adempiere.base,
  org.adempiere.plugin.utils
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
-Service-Component: OSGI-INF/ProductPricingFactory.xml,
- OSGI-INF/ModelFactory.xml, CalloutFactory.xml
+Service-Component: OSGI-INF/ProductPricingFactory.xml,OSGI-INF/ModelFactory.xml,
+ OSGI-INF/CalloutFactory.xml
 Bundle-ActivationPolicy: lazy
