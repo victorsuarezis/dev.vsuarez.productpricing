@@ -36,6 +36,8 @@ public class SetProductPrice implements IColumnCallout {
 		
 		MProductPrice productPrice = new Query(ctx, MProductPrice.Table_Name, "M_PriceList_Version_ID = ? AND M_Product_ID =?", null)
 				.setOnlyActiveRecords(true).setParameters(M_Pricelist_Version_Base_ID, M_Product_ID).first();
+		if(productPrice == null)
+			return null;
 		
 		mTab.setValue(MProductPrice.COLUMNNAME_PriceList, productPrice.getPriceList());
 		mTab.setValue(MProductPrice.COLUMNNAME_PriceStd, productPrice.getPriceStd());
