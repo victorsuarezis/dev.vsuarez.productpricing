@@ -23,6 +23,8 @@ public class SetProductPrice implements IColumnCallout {
 	public String start(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value, Object oldValue) {
 		if(value == null)
 			return null;
+		if(mTab.getValue(MPriceListVersion.COLUMNNAME_M_PriceList_Version_ID) == null)
+			return null;			
 		
 		int M_Product_ID = (int) value;
 		int M_PriceList_Version_ID = (int) mTab.getValue(MPriceListVersion.COLUMNNAME_M_PriceList_Version_ID);
