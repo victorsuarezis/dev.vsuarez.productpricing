@@ -956,7 +956,7 @@ public class IVS_MProductPricing extends AbstractProductPricing {
 	@Override
 	public void setOrderLine(I_C_OrderLine orderLine, String trxName) {
 		super.setOrderLine(orderLine, trxName);
-		if(orderLine != null) {
+		if(orderLine != null && orderLine.getC_Order_ID() > 0) {
 			I_C_Order order = orderLine.getC_Order();
 			setM_Warehouse_ID(order.getM_Warehouse_ID());
 		}
